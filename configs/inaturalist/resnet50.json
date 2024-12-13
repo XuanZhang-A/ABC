@@ -1,0 +1,86 @@
+{
+    "name": "iNaturalist18_ResNet50_PSEUDO",
+    "dataset": "inature",
+    "n_gpu": 8,
+    "arch": {
+        "type": "ResNet50",
+        "args": {
+            "num_classes": 8142,
+            "reduce_dimension": false,
+            "use_norm": true,
+            "returns_feat": true,
+            "num_experts": 3
+        }
+    },
+    "data_loader": {
+        "type": "iNaturalist2018DataLoader",
+        "args": {
+            "data_dir": "data/LTOOD/iNaturalist2018",
+            "batch_size": 32,
+            "shuffle": true,
+            "num_workers": 4,
+            "train_txt": "data/LTOOD/data_txt/iNaturalist18/iNaturalist18_train.txt",
+            "eval_txt": "data/LTOOD/data_txt/iNaturalist18/iNaturalist18_val.txt",
+            "resample_weight": 0.2
+        }
+    },
+    "ood_data_loader": {
+        "type": "OoDDataLoader",
+        "args": {
+            "ood_data": "pseudo",
+            "data_dir": "data/LTOOD/iNaturalist2018",
+            "train_dir": "data/LTOOD/data_txt/iNaturalist18/iNaturalist18_train.txt",
+            "val_dir": "data/LTOOD/data_txt/iNaturalist18/iNaturalist18_val.txt",
+            "batch_size": 128
+        }
+    },
+    "optimizer": {
+        "type": "SGD",
+        "args": {
+            "lr": 0.1,
+            "weight_decay": 2e-4,
+            "momentum": 0.9,
+            "nesterov": true
+        }
+    },
+    "add_extra_info": true,
+    "loss": {
+        "type": "A3LALoss",
+        "args": {
+            "tau": 3.0
+        }
+    },
+    "metrics": [
+        "accuracy",
+        "top_k_acc",
+        "f1_score",
+        "false_positive_rate"
+    ],
+    "lr_scheduler": {
+        "type": "cosine",
+        "args": {
+            "decay_end": 400
+        }
+    },
+    "trainer": {
+        "type": "Trainer",
+        "args": {
+            "epochs": 120,
+            "save_period": 40,
+            "verbosity": 2,
+            "monitor": "max val_accuracy",
+            "tensorboard": false,
+            "loss_coefficient": [
+                1.0,
+                0.1,
+                1.0
+            ],
+            "contrastive_loss": {
+                "lambda_pull": 1.0,
+                "lambda_push": 1.0,
+                "a_0": 5.0,
+                "a_1": 5.0
+            }
+        }
+    }
+}

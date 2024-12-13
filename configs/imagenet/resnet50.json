@@ -1,0 +1,89 @@
+{
+    "name": "ImageNet_LT_ResNet50_contrastive_remix",
+    "dataset": "imagenet",
+    "n_gpu": 8,
+    "arch": {
+        "type": "ResNet50",
+        "args": {
+            "num_classes": 1000,
+            "reduce_dimension": false,
+            "use_norm": true,
+            "returns_feat": true,
+            "num_experts": 3
+        }
+    },
+    "data_loader": {
+        "type": "ImageNetLTDataLoader",
+        "args": {
+            "data_dir": "./data/LTOOD/Imagenet",
+            "batch_size": 64,
+            "shuffle": true,
+            "num_workers": 4,
+            "double_out": true,
+            "train_txt": "./data/LTOOD/data_txt/ImageNet_LT/ImageNet_LT_train.txt",
+            "val_txt": "./data/LTOOD/data_txt/ImageNet_LT/ImageNet_LT_val.txt",
+            "test_txt": "./data/LTOOD/data_txt/ImageNet_LT/ImageNet_LT_test.txt",
+            "resample_weight": 0.2
+        }
+    },
+    "ood_data_loader": {
+        "type": "OoDDataLoader",
+        "args": {
+            "ood_data": "iNaturalist2018",
+            "data_dir": "data/LTOOD/iNaturalist2018",
+            "train_dir": "data/LTOOD/data_txt/iNaturalist18/iNaturalist18_train.txt",
+            "val_dir": "data/LTOOD/data_txt/iNaturalist18/iNaturalist18_val.txt",
+            "batch_size": 128
+        }
+    },
+    "optimizer": {
+        "type": "SGD",
+        "args": {
+            "lr": 0.025,
+            "weight_decay": 5e-4,
+            "momentum": 0.9,
+            "nesterov": true
+        }
+    },
+    "add_extra_info": true,
+    "loss": {
+        "type": "A3LALoss",
+        "args": {
+            "tau": 2.8
+        }
+    },
+    "metrics": [
+        "accuracy",
+        "top_k_acc",
+        "f1_score",
+        "false_positive_rate"
+    ],
+    "lr_scheduler": {
+        "type": "CosineAnnealingLR",
+        "args": {
+            "T_max": 180,
+            "eta_min": 0
+        }
+    },
+    "trainer": {
+        "type": "Trainer",
+        "args": {
+            "epochs": 180,
+            "save_period": 180,
+            "verbosity": 2,
+            "monitor": "max val_accuracy",
+            "tensorboard": false,
+            "loss_coefficient": [
+                1.0,
+                0.1,
+                1.0
+            ],
+            "contrastive_loss": {
+                "lambda_pull": 1.0,
+                "lambda_push": 1.0,
+                "a_0": 5.0,
+                "a_1": 5.0
+            }
+        }
+    }
+}

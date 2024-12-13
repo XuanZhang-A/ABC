@@ -1,0 +1,97 @@
+{
+    "name": "RICASSO",
+    "n_gpu": 1,
+    "beta": 0.5,
+    "dataset": "cifar100",
+    "dout": "cifar",
+    "noise_type": "None",
+    "logging": "none",
+    "test_ood": "odin",
+    "arch": {
+        "type": "ResNet32_GLMC",
+        "args": {
+            "num_classes": 100,
+            "ood": false,
+            "reduce_dimension": false,
+            "use_norm": true,
+            "returns_feat": true,
+            "num_experts": 3
+        }
+    },
+    "data_loader": {
+        "type": "ImbalanceCIFAR100DataLoader",
+        "args": {
+            "data_dir": "./data/LTOOD/CIFAR-100",
+            "batch_size": 128,
+            "shuffle": true,
+            "double_out": true,
+            "num_workers": 4,
+            "imb_factor": 0.02,
+            "resample_weight": 0.0
+        }
+    },
+    "ood_data_loader": {
+        "type": "OoDDataLoader",
+        "args": {
+            "ood_data": "iNaturalist2018",
+            "data_dir": "./data/LTOOD/iNaturalist2018",
+            "train_dir": "./data/LTOOD/data_txt/iNaturalist18/iNaturalist18_train.txt",
+            "val_dir": "./data/LTOOD/iNaturalist2018/iNaturalist18_val.txt",
+            "batch_size": 128
+        }
+    },
+    "optimizer": {
+        "type": "SGD",
+        "args": {
+            "lr": 0.1,
+            "weight_decay": 2e-4,
+            "momentum": 0.9,
+            "nesterov": true
+        }
+    },
+    "add_extra_info": true,
+    "loss": {
+        "type": "A3LALoss",
+        "args": {
+            "tau": 3.0
+        }
+    },
+    "metrics": [
+        "accuracy",
+        "top_k_acc",
+        "f1_score",
+        "false_positive_rate"
+    ],
+    "lr_scheduler": {
+        "type": "warmup",
+        "args": {
+            "lr_step": [
+                320,
+                360
+            ],
+            "lr_factor": 0.1,
+            "warmup_epoch": 5
+        }
+    },
+    "trainer": {
+        "type": "Trainer",
+        "args": {
+            "epochs": 400,
+            "save_period": 100,
+            "verbosity": 2,
+            "monitor": "max val_accuracy",
+            "tensorboard": false,
+            "loss_coefficient": [
+                1.0,
+                0.1,
+                1.0
+            ],
+            "contrastive_loss": {
+                "lambda_pull": 1.0,
+                "lambda_push": 1.0,
+                "a_0": 5.0,
+                "a_1": 5.0
+            }
+        }
+    }
+}
